@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include<intrins.h>
 #define uchar unsigned char
-#define uint unsigned char
+#define uint unsigned int
 
 sbit RS = P2^4;
 sbit RW = P2^5;
@@ -10,8 +10,8 @@ sbit E = P2^6;
 bit kp;
 
 /******
- * ÑÓ³Ùº¯Êı
- * 11.0592MHz¾§ÕñÏÂ£¬ÑÓ³ÙÔ¼1ms
+ * å»¶è¿Ÿå‡½æ•°
+ * 11.0592MHzæ™¶æŒ¯ä¸‹ï¼Œå»¶è¿Ÿçº¦1ms
 ******/
 void delayms(uint ms) 
 {
@@ -21,7 +21,7 @@ void delayms(uint ms)
 }
 
 /******
- * Ğ´ÃüÁîº¯Êı
+ * å†™å‘½ä»¤å‡½æ•°
 ******/
 void w_com(uchar com)
 {
@@ -34,7 +34,7 @@ void w_com(uchar com)
 }
 
 /******
- * Ğ´ÈëÊı¾İ
+ * å†™å…¥æ•°æ®
 ******/
 void w_dat(uchar dat)
 {
@@ -47,7 +47,7 @@ void w_dat(uchar dat)
 }
 
 /******
- * Ğ´Èë×Ö·û
+ * å†™å…¥å­—ç¬¦
 ******/
 void w_Char(uchar x,uchar y,uchar dat)
 {
@@ -63,7 +63,7 @@ void w_Char(uchar x,uchar y,uchar dat)
 }
 
 /******
- * Ğ´Èë×Ö·û´®
+ * å†™å…¥å­—ç¬¦ä¸²
 ******/
 void w_str(uchar x, uchar y, uchar *s)
 {
@@ -76,7 +76,7 @@ void w_str(uchar x, uchar y, uchar *s)
 }
 
 /******
- * Òº¾§ÆÁ³õÊ¼»¯
+ * æ¶²æ™¶å±åˆå§‹åŒ–
 ******/
 void LCD_init()
 {
@@ -94,8 +94,8 @@ void LCD_init()
 }
 
 /******
- * 4x4¾ØÕó°´¼üÉ¨Ãè
- * Ê¹ÓÃ°´¼üÉ¨Ãè·¨
+ * 4x4çŸ©é˜µæŒ‰é”®æ‰«æ
+ * ä½¿ç”¨æŒ‰é”®æ‰«ææ³•
 ******/
 uchar key_scan()
 {
@@ -122,34 +122,34 @@ uchar key_scan()
 }
 
 /******
- * ¶¨Òå¸÷°´¼üº¬Òå
+ * å®šä¹‰å„æŒ‰é”®å«ä¹‰
 ******/
 uchar key_pro()
 {
 	switch(key_scan())
 	{
-		case 0x7e : return '/'; break;	//°´¼ü0
-		case 0x7d : return 'x'; break;	//°´¼ü1
-		case 0x7b : return '-'; break;	//°´¼ü2
-		case 0x77 : return '+'; break;	//°´¼ü3
-		case 0xbe : return '='; break;	//°´¼ü4
-		case 0xbd : return '3'; break;	//°´¼ü5
-		case 0xbb : return '6'; break;	//°´¼ü6
-		case 0xb7 : return '9'; break;	//°´¼ü7
-		case 0xde : return '.'; break;	//°´¼ü8
-		case 0xdd : return '2'; break;	//°´¼ü9
-		case 0xdb : return '5'; break;	//°´¼üA
-		case 0xd7 : return '8'; break;	//°´¼üB
-		case 0xee : return '0'; break;	//°´¼üC
-		case 0xed : return '1'; break;	//°´¼üD
-		case 0xeb : return '4'; break;	//°´¼üE
-		case 0xe7  :return '7'; break;	//°´¼üF
+		case 0x7e : return '/'; break;	//æŒ‰é”®0
+		case 0x7d : return 'x'; break;	//æŒ‰é”®1
+		case 0x7b : return '-'; break;	//æŒ‰é”®2
+		case 0x77 : return '+'; break;	//æŒ‰é”®3
+		case 0xbe : return '='; break;	//æŒ‰é”®4
+		case 0xbd : return '3'; break;	//æŒ‰é”®5
+		case 0xbb : return '6'; break;	//æŒ‰é”®6
+		case 0xb7 : return '9'; break;	//æŒ‰é”®7
+		case 0xde : return '.'; break;	//æŒ‰é”®8
+		case 0xdd : return '2'; break;	//æŒ‰é”®9
+		case 0xdb : return '5'; break;	//æŒ‰é”®A
+		case 0xd7 : return '8'; break;	//æŒ‰é”®B
+		case 0xee : return '0'; break;	//æŒ‰é”®C
+		case 0xed : return '1'; break;	//æŒ‰é”®D
+		case 0xeb : return '4'; break;	//æŒ‰é”®E
+		case 0xe7  :return '7'; break;	//æŒ‰é”®F
 		default : return 0xff; break;
 	}
 }
 
 /******
- * Ö÷º¯Êı
+ * ä¸»å‡½æ•°
 ******/
 int main(void)
 {
@@ -167,30 +167,30 @@ int main(void)
 	while(1)
 	{
 		num = key_pro();
-		if(num != 0xff)         //Èç¹ûÉ¨ÃèÓĞĞ§ÖµÔò½øÈëÏÂÒ»²½
+		if(num != 0xff)         //å¦‚æœæ‰«ææœ‰æ•ˆå€¼åˆ™è¿›å…¥ä¸‹ä¸€æ­¥
 		{
-			if(i == 0)            //ÊäÈëµÚÒ»¸ö×Ö·ûµÄÊ±£¬ĞèÒª°ÑºóÃæÇå¿Õ
+			if(i == 0)            //è¾“å…¥ç¬¬ä¸€ä¸ªå­—ç¬¦çš„æ—¶ï¼Œéœ€è¦æŠŠåé¢æ¸…ç©º
 				w_com(0x01);
 			if(('+' == num) || (i == 16) || ('-' == num) || ('x' == num) || ('/' == num) || ('=' == num))
 			{
-				i = 0;              //¼ÆËãÆ÷¸´Î»
-				if(firstflag == 0)//flagµÈÓÚ0£¬ÔòËµÃ÷Ö®Ç°Ã»ÊéÈç¹ûÊı×Ö£¬ÏÖÔÚÊäÈëÒ»¸ö±»¼ÓÊı
+				i = 0;              //è®¡ç®—å™¨å¤ä½
+				if(firstflag == 0)//flagç­‰äº0ï¼Œåˆ™è¯´æ˜ä¹‹å‰æ²¡ä¹¦å¦‚æœæ•°å­—ï¼Œç°åœ¨è¾“å…¥ä¸€ä¸ªè¢«åŠ æ•°
         		{
-					sscanf(temp, "%f", &a);//ÊäÈë±»¼ÓÊı
+					sscanf(temp, "%f", &a);//è¾“å…¥è¢«åŠ æ•°
 					firstflag = 1;
 				}
 				else
-					sscanf(temp, "%f", &b);//Èç¹ûflagµÈÓÚ1£¬ÔòÖ®Ç°ÊäÈëÁËÒ»¸ö±»¼Ó»ò¼õ¡¢³Ë¡¢³ıÊı
-				for(s = 0; s < 16; s++) //»º³åÇøÇåÀí
+					sscanf(temp, "%f", &b);//å¦‚æœflagç­‰äº1ï¼Œåˆ™ä¹‹å‰è¾“å…¥äº†ä¸€ä¸ªè¢«åŠ æˆ–å‡ã€ä¹˜ã€é™¤æ•°
+				for(s = 0; s < 16; s++) //ç¼“å†²åŒºæ¸…ç†
 				{
 					temp[s] = 0;
 				}
-				w_Char(0, 1, num);  //·ûºÅÔÚµÚ¶şĞĞ
+				w_Char(0, 1, num);  //ç¬¦å·åœ¨ç¬¬äºŒè¡Œ
 				if(num != '=')
-					sign = num;       //Èç¹ûÊäÈëµÄ²»ÊÇµÈºÅ£¬¼ÇÏÂ±êÖ¾Î»
+					sign = num;       //å¦‚æœè¾“å…¥çš„ä¸æ˜¯ç­‰å·ï¼Œè®°ä¸‹æ ‡å¿—ä½
 				else
 				{
-					firstflag = 0;    //¼ì²âµ½ÊäÈë'='ºÅ£¬ÅĞ¶ÏÉÏ´Î¶ÁÈëµÄ·ûºÅ
+					firstflag = 0;    //æ£€æµ‹åˆ°è¾“å…¥'='å·ï¼Œåˆ¤æ–­ä¸Šæ¬¡è¯»å…¥çš„ç¬¦å·
 					switch(sign)
 					{
 						case '+': a = a + b; break;
@@ -199,35 +199,35 @@ int main(void)
 						case '/': a = a / b; break;
 						default: break;
 					}
-					sprintf(temp, "%g", a);  //Êä³ö¸¡µãĞÍ
-					w_str(1, 1, temp);       //ÏÔÊ¾µ½Òº¾§ÆÁ
-					sign = 0;    //Ö®ºóÊı¾İÇåÁã
-					a = b = 0;   //Ö®ºóÊı¾İÇåÁã            
+					sprintf(temp, "%g", a);  //è¾“å‡ºæµ®ç‚¹å‹
+					w_str(1, 1, temp);       //æ˜¾ç¤ºåˆ°æ¶²æ™¶å±
+					sign = 0;    //ä¹‹åæ•°æ®æ¸…é›¶
+					a = b = 0;   //ä¹‹åæ•°æ®æ¸…é›¶            
 					for(s = 0; s < 16; s++)
 					temp[s] = 0;
 				}
 			}
 			else if(i < 16)
 			{
-				if((1 == i) && (temp[0] == '0'))  //Èç¹ûµÚÒ»¸ö×Ö·ûÎª0£¬Ôò¶ÔÏÂÒ»¸ö×Ö·û½øĞĞÅĞ¶Ï
+				if((1 == i) && (temp[0] == '0'))  //å¦‚æœç¬¬ä¸€ä¸ªå­—ç¬¦ä¸º0ï¼Œåˆ™å¯¹ä¸‹ä¸€ä¸ªå­—ç¬¦è¿›è¡Œåˆ¤æ–­
 				{
-					if(num == '.')       //Èç¹ûÊÇĞ¡Êıµã£¬Ôò¹â±êÎ»ÖÃ¼Ó1
+					if(num == '.')       //å¦‚æœæ˜¯å°æ•°ç‚¹ï¼Œåˆ™å…‰æ ‡ä½ç½®åŠ 1
 					{
 						temp[1] = '.';
-						w_Char(1, 0, num);   //Êä³öÊı¾İ
+						w_Char(1, 0, num);   //è¾“å‡ºæ•°æ®
 						i++;
 					}
 					else
 					{
-						temp[0] = num;      //Èç¹ûÊÇÊı×Ö1-9£¬ÔòËµÃ÷0Ã»ÓÃ£¬ÔòÌæ»»0ËùÔÚµÄµÚÒ»Î»
-						w_Char(0, 0, num);  //Êä³öÊı¾İ
+						temp[0] = num;      //å¦‚æœæ˜¯æ•°å­—1-9ï¼Œåˆ™è¯´æ˜0æ²¡ç”¨ï¼Œåˆ™æ›¿æ¢0æ‰€åœ¨çš„ç¬¬ä¸€ä½
+						w_Char(0, 0, num);  //è¾“å‡ºæ•°æ®
 					}
 				}
 				else
 				{
 					temp[i] = num;
-					w_Char(i, 0, num);   //Êä³öÊı¾İ
-					i++;               //ÊäÈëÊıÖµÀÛ¼Ó
+					w_Char(i, 0, num);   //è¾“å‡ºæ•°æ®
+					i++;               //è¾“å…¥æ•°å€¼ç´¯åŠ 
 				}
 			}
 		}
