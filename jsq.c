@@ -22,12 +22,12 @@ void delayms(uint ms)
 /******
  * 写命令函数
 ******/
-void w_com(uchar com)
+void lcd_write_command(uchar command)
 {
 	RS = 0;
 	RW = 0;
 	E = 1;
-	P0 = com;
+	P0 = command;
 	E = 0;
 	delayms(1);
 }
@@ -35,12 +35,12 @@ void w_com(uchar com)
 /******
  * 写入数据
 ******/
-void w_dat(uchar dat)
+void lcd_write_data(uchar data_byte)
 {
 	RS = 1;
 	RW = 0;
 	E = 1;
-	P0 = dat;
+	P0 = data_byte;
 	E = 0;
 	delayms(1);
 }
@@ -48,27 +48,27 @@ void w_dat(uchar dat)
 /******
  * 写入字符
 ******/
-void w_Char(uchar x,uchar y,uchar dat)
+void lcd_write_char(uchar x, uchar y, uchar data_byte)
 {
 	if(y == 0)
 	{
-		w_com(0x80 + x);
+		lcd_write_command(0x80 + x);
 	}
 	else
 	{
-		w_com(0xc0 + x);
+		lcd_write_command(0xc0 + x);
 	}
-	w_dat(dat);
+	lcd_write_data(data_byte);
 }
 
 /******
  * 写入字符串
 ******/
-void w_str(uchar x, uchar y, uchar *s)
+void lcd_write_string(uchar x, uchar y, uchar *s)
 {
 	while(*s)
 	{
-		w_Char(x, y, *s);
+		lcd_write_char(x, y, *s);
 		s++;
 		x++;
 	}
@@ -77,18 +77,18 @@ void w_str(uchar x, uchar y, uchar *s)
 /******
  * 液晶屏初始化
 ******/
-void LCD_init()
+void lcd_init()
 {
 	delayms(10);
-	w_com(0x38);
+	lcd_write_command(0x38);
 	delayms(10);
-	w_com(0x06);
+	lcd_write_command(0x06);
 	delayms(10);
-	w_com(0x0c);
+	lcd_write_command(0x0c);
 	delayms(10);
-	w_com(0x01);
+	lcd_write_command(0x01);
 	delayms(10);
-	w_com(0x38);
+	lcd_write_command(0x38);
 	delayms(10);
 }
 
@@ -96,7 +96,7 @@ void LCD_init()
  * 4x4矩阵按键扫描
  * 使用按键扫描法
 ******/
-uchar key_scan()
+uchar keypad_scan()
 {
 	uchar scan1, scan2, temp;
 	static bit is_key_latched = 0;
@@ -123,9 +123,9 @@ uchar key_scan()
 /******
  * 定义各按键含义
 ******/
-uchar key_pro()
+uchar keypad_get_key()
 {
-	switch(key_scan())
+	switch(keypad_scan())
 	{
 		case 0x7e : return '/'; break;	//按键0
 		case 0x7d : return 'x'; break;	//按键1
@@ -161,18 +161,18 @@ int main(void)
 	float second_operand = 0;
 	uchar buffer_index = 0;
 
-	LCD_init();
+	lcd_init();
 	delayms(10);
-	w_com(0x01);
+	lcd_write_command(0x01);
 	delayms(200);
-	w_com(0x01);
+	lcd_write_command(0x01);
 	while(1)
 	{
-		pressed_key = key_pro();
+		pressed_key = keypad_get_key();
 		if(pressed_key != 0xff)         //如果扫描有效值则进入下一步
 		{
 			if(input_index == 0)            //输入第一个字符的时，需要把后面清空
-				w_com(0x01);
+				lcd_write_command(0x01);
 			if(('+' == pressed_key) || (input_index == 16) || ('-' == pressed_key) || ('x' == pressed_key) || ('/' == pressed_key) || ('=' == pressed_key))
 			{
 				input_index = 0;              //计算器复位
@@ -187,7 +187,7 @@ int main(void)
 				{
 					input_buffer[buffer_index] = 0;
 				}
-				w_Char(0, 1, pressed_key);  //符号在第二行
+				lcd_write_char(0, 1, pressed_key);  //符号在第二行
 				if(pressed_key != '=')
 					operator_key = pressed_key;       //如果输入的不是等号，记下标志位
 				else
@@ -202,7 +202,7 @@ int main(void)
 						default: break;
 					}
 					sprintf(input_buffer, "%g", first_operand);  //输出浮点型
-					w_str(1, 1, input_buffer);       //显示到液晶屏
+					lcd_write_string(1, 1, input_buffer);       //显示到液晶屏
 					operator_key = 0;    //之后数据清零
 					first_operand = second_operand = 0;   //之后数据清零            
 					for(buffer_index = 0; buffer_index < 16; buffer_index++)
@@ -216,19 +216,19 @@ int main(void)
 					if(pressed_key == '.')       //如果是小数点，则光标位置加1
 					{
 						input_buffer[1] = '.';
-						w_Char(1, 0, pressed_key);   //输出数据
+						lcd_write_char(1, 0, pressed_key);   //输出数据
 						input_index++;
 					}
 					else
 					{
 						input_buffer[0] = pressed_key;      //如果是数字1-9，则说明0没用，则替换0所在的第一位
-						w_Char(0, 0, pressed_key);  //输出数据
+						lcd_write_char(0, 0, pressed_key);  //输出数据
 					}
 				}
 				else
 				{
 					input_buffer[input_index] = pressed_key;
-					w_Char(input_index, 0, pressed_key);   //输出数据
+					lcd_write_char(input_index, 0, pressed_key);   //输出数据
 					input_index++;               //输入数值累加
 				}
 			}
