@@ -111,7 +111,7 @@ uchar key_scan()
 		{
 			kp = 1;
 			P3 = 0x0f;
-			scan2 = P3 % 0x0f;
+			scan2 = P3 & 0x0f;
 			temp = scan1 | scan2;
 			return temp;
 		}
@@ -153,11 +153,14 @@ uchar key_pro()
 ******/
 int main(void)
 {
-	uchar num, i, sign;
-	uchar temp[16];
-	bit firstflag;
-	float a = 0, b = 0;
-	uchar s;
+	uchar pressed_key = 0xff;
+	uchar input_index = 0;
+	uchar operator_key = 0;
+	uchar input_buffer[16] = {0};
+	bit has_first_operand = 0;
+	float first_operand = 0;
+	float second_operand = 0;
+	uchar buffer_index = 0;
 
 	LCD_init();
 	delayms(10);
@@ -166,68 +169,68 @@ int main(void)
 	w_com(0x01);
 	while(1)
 	{
-		num = key_pro();
-		if(num != 0xff)         //如果扫描有效值则进入下一步
+		pressed_key = key_pro();
+		if(pressed_key != 0xff)         //如果扫描有效值则进入下一步
 		{
-			if(i == 0)            //输入第一个字符的时，需要把后面清空
+			if(input_index == 0)            //输入第一个字符的时，需要把后面清空
 				w_com(0x01);
-			if(('+' == num) || (i == 16) || ('-' == num) || ('x' == num) || ('/' == num) || ('=' == num))
+			if(('+' == pressed_key) || (input_index == 16) || ('-' == pressed_key) || ('x' == pressed_key) || ('/' == pressed_key) || ('=' == pressed_key))
 			{
-				i = 0;              //计算器复位
-				if(firstflag == 0)//flag等于0，则说明之前没书如果数字，现在输入一个被加数
+				input_index = 0;              //计算器复位
+				if(has_first_operand == 0)//flag等于0，则说明之前没书如果数字，现在输入一个被加数
         		{
-					sscanf(temp, "%f", &a);//输入被加数
-					firstflag = 1;
+					sscanf(input_buffer, "%f", &first_operand);//输入被加数
+					has_first_operand = 1;
 				}
 				else
-					sscanf(temp, "%f", &b);//如果flag等于1，则之前输入了一个被加或减、乘、除数
-				for(s = 0; s < 16; s++) //缓冲区清理
+					sscanf(input_buffer, "%f", &second_operand);//如果flag等于1，则之前输入了一个被加或减、乘、除数
+				for(buffer_index = 0; buffer_index < 16; buffer_index++) //缓冲区清理
 				{
-					temp[s] = 0;
+					input_buffer[buffer_index] = 0;
 				}
-				w_Char(0, 1, num);  //符号在第二行
-				if(num != '=')
-					sign = num;       //如果输入的不是等号，记下标志位
+				w_Char(0, 1, pressed_key);  //符号在第二行
+				if(pressed_key != '=')
+					operator_key = pressed_key;       //如果输入的不是等号，记下标志位
 				else
 				{
-					firstflag = 0;    //检测到输入'='号，判断上次读入的符号
-					switch(sign)
+					has_first_operand = 0;    //检测到输入'='号，判断上次读入的符号
+					switch(operator_key)
 					{
-						case '+': a = a + b; break;
-						case '-': a = a - b; break;
-						case 'x': a = a * b; break;
-						case '/': a = a / b; break;
+						case '+': first_operand = first_operand + second_operand; break;
+						case '-': first_operand = first_operand - second_operand; break;
+						case 'x': first_operand = first_operand * second_operand; break;
+						case '/': first_operand = first_operand / second_operand; break;
 						default: break;
 					}
-					sprintf(temp, "%g", a);  //输出浮点型
-					w_str(1, 1, temp);       //显示到液晶屏
-					sign = 0;    //之后数据清零
-					a = b = 0;   //之后数据清零            
-					for(s = 0; s < 16; s++)
-					temp[s] = 0;
+					sprintf(input_buffer, "%g", first_operand);  //输出浮点型
+					w_str(1, 1, input_buffer);       //显示到液晶屏
+					operator_key = 0;    //之后数据清零
+					first_operand = second_operand = 0;   //之后数据清零            
+					for(buffer_index = 0; buffer_index < 16; buffer_index++)
+					input_buffer[buffer_index] = 0;
 				}
 			}
-			else if(i < 16)
+			else if(input_index < 16)
 			{
-				if((1 == i) && (temp[0] == '0'))  //如果第一个字符为0，则对下一个字符进行判断
+				if((1 == input_index) && (input_buffer[0] == '0'))  //如果第一个字符为0，则对下一个字符进行判断
 				{
-					if(num == '.')       //如果是小数点，则光标位置加1
+					if(pressed_key == '.')       //如果是小数点，则光标位置加1
 					{
-						temp[1] = '.';
-						w_Char(1, 0, num);   //输出数据
-						i++;
+						input_buffer[1] = '.';
+						w_Char(1, 0, pressed_key);   //输出数据
+						input_index++;
 					}
 					else
 					{
-						temp[0] = num;      //如果是数字1-9，则说明0没用，则替换0所在的第一位
-						w_Char(0, 0, num);  //输出数据
+						input_buffer[0] = pressed_key;      //如果是数字1-9，则说明0没用，则替换0所在的第一位
+						w_Char(0, 0, pressed_key);  //输出数据
 					}
 				}
 				else
 				{
-					temp[i] = num;
-					w_Char(i, 0, num);   //输出数据
-					i++;               //输入数值累加
+					input_buffer[input_index] = pressed_key;
+					w_Char(input_index, 0, pressed_key);   //输出数据
+					input_index++;               //输入数值累加
 				}
 			}
 		}
