@@ -4,6 +4,19 @@
 #define uchar unsigned char
 #define uint unsigned int
 
+#define KEY_NONE 0xff
+#define INPUT_BUFFER_SIZE 16
+
+#define LCD_LINE_1_ADDR 0x80
+#define LCD_LINE_2_ADDR 0xc0
+#define LCD_CLEAR_COMMAND 0x01
+#define LCD_FUNCTION_SET 0x38
+#define LCD_ENTRY_MODE_SET 0x06
+#define LCD_DISPLAY_ON 0x0c
+
+#define KEYPAD_HIGH_MASK 0xf0
+#define KEYPAD_LOW_MASK 0x0f
+
 sbit RS = P2^4;
 sbit RW = P2^5;
 sbit E = P2^6;
@@ -52,11 +65,11 @@ void lcd_write_char(uchar x, uchar y, uchar data_byte)
 {
 	if(y == 0)
 	{
-		lcd_write_command(0x80 + x);
+		lcd_write_command(LCD_LINE_1_ADDR + x);
 	}
 	else
 	{
-		lcd_write_command(0xc0 + x);
+		lcd_write_command(LCD_LINE_2_ADDR + x);
 	}
 	lcd_write_data(data_byte);
 }
@@ -80,15 +93,15 @@ void lcd_write_string(uchar x, uchar y, uchar *s)
 void lcd_init()
 {
 	delayms(10);
-	lcd_write_command(0x38);
+	lcd_write_command(LCD_FUNCTION_SET);
 	delayms(10);
-	lcd_write_command(0x06);
+	lcd_write_command(LCD_ENTRY_MODE_SET);
 	delayms(10);
-	lcd_write_command(0x0c);
+	lcd_write_command(LCD_DISPLAY_ON);
 	delayms(10);
-	lcd_write_command(0x01);
+	lcd_write_command(LCD_CLEAR_COMMAND);
 	delayms(10);
-	lcd_write_command(0x38);
+	lcd_write_command(LCD_FUNCTION_SET);
 	delayms(10);
 }
 
@@ -100,24 +113,24 @@ uchar keypad_scan()
 {
 	uchar scan1, scan2, temp;
 	static bit is_key_latched = 0;
-	P3 = 0xf0;
-	scan1 = P3 & 0xf0;
-	if(scan1 != 0xf0)
+	P3 = KEYPAD_HIGH_MASK;
+	scan1 = P3 & KEYPAD_HIGH_MASK;
+	if(scan1 != KEYPAD_HIGH_MASK)
 	{
 		delayms(10);
-		scan1 = P3 & 0xf0;
-		if((scan1 != 0xf0) && (is_key_latched == 0))
+		scan1 = P3 & KEYPAD_HIGH_MASK;
+		if((scan1 != KEYPAD_HIGH_MASK) && (is_key_latched == 0))
 		{
 			is_key_latched = 1;
-			P3 = 0x0f;
-			scan2 = P3 & 0x0f;
+			P3 = KEYPAD_LOW_MASK;
+			scan2 = P3 & KEYPAD_LOW_MASK;
 			temp = scan1 | scan2;
 			return temp;
 		}
 	}
 	else 
 		is_key_latched = 0;
-	return 0xff;
+	return KEY_NONE;
 }
 
 /******
@@ -143,7 +156,7 @@ uchar keypad_get_key()
 		case 0xed : return '1'; break;	//按键D
 		case 0xeb : return '4'; break;	//按键E
 		case 0xe7  :return '7'; break;	//按键F
-		default : return 0xff; break;
+		default : return KEY_NONE; break;
 	}
 }
 
@@ -152,10 +165,10 @@ uchar keypad_get_key()
 ******/
 int main(void)
 {
-	uchar pressed_key = 0xff;
+	uchar pressed_key = KEY_NONE;
 	uchar input_index = 0;
 	uchar operator_key = 0;
-	uchar input_buffer[16] = {0};
+	uchar input_buffer[INPUT_BUFFER_SIZE] = {0};
 	bit has_first_operand = 0;
 	float first_operand = 0;
 	float second_operand = 0;
@@ -163,17 +176,17 @@ int main(void)
 
 	lcd_init();
 	delayms(10);
-	lcd_write_command(0x01);
+	lcd_write_command(LCD_CLEAR_COMMAND);
 	delayms(200);
-	lcd_write_command(0x01);
+	lcd_write_command(LCD_CLEAR_COMMAND);
 	while(1)
 	{
 		pressed_key = keypad_get_key();
-		if(pressed_key != 0xff)         //如果扫描有效值则进入下一步
+		if(pressed_key != KEY_NONE)         //如果扫描有效值则进入下一步
 		{
 			if(input_index == 0)            //输入第一个字符的时，需要把后面清空
-				lcd_write_command(0x01);
-			if(('+' == pressed_key) || (input_index == 16) || ('-' == pressed_key) || ('x' == pressed_key) || ('/' == pressed_key) || ('=' == pressed_key))
+				lcd_write_command(LCD_CLEAR_COMMAND);
+			if(('+' == pressed_key) || (input_index == INPUT_BUFFER_SIZE) || ('-' == pressed_key) || ('x' == pressed_key) || ('/' == pressed_key) || ('=' == pressed_key))
 			{
 				input_index = 0;              //计算器复位
 				if(has_first_operand == 0)//flag等于0，则说明之前没书如果数字，现在输入一个被加数
@@ -183,7 +196,7 @@ int main(void)
 				}
 				else
 					sscanf(input_buffer, "%f", &second_operand);//如果flag等于1，则之前输入了一个被加或减、乘、除数
-				for(buffer_index = 0; buffer_index < 16; buffer_index++) //缓冲区清理
+				for(buffer_index = 0; buffer_index < INPUT_BUFFER_SIZE; buffer_index++) //缓冲区清理
 				{
 					input_buffer[buffer_index] = 0;
 				}
@@ -205,11 +218,11 @@ int main(void)
 					lcd_write_string(1, 1, input_buffer);       //显示到液晶屏
 					operator_key = 0;    //之后数据清零
 					first_operand = second_operand = 0;   //之后数据清零            
-					for(buffer_index = 0; buffer_index < 16; buffer_index++)
+					for(buffer_index = 0; buffer_index < INPUT_BUFFER_SIZE; buffer_index++)
 					input_buffer[buffer_index] = 0;
 				}
 			}
-			else if(input_index < 16)
+			else if(input_index < INPUT_BUFFER_SIZE)
 			{
 				if((1 == input_index) && (input_buffer[0] == '0'))  //如果第一个字符为0，则对下一个字符进行判断
 				{
