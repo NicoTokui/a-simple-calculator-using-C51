@@ -161,6 +161,26 @@ uchar keypad_get_key()
 }
 
 /******
+ * 清空输入缓冲区
+******/
+void clear_input_buffer(uchar *buffer)
+{
+	uchar index;
+	for(index = 0; index < INPUT_BUFFER_SIZE; index++)
+	{
+		buffer[index] = 0;
+	}
+}
+
+/******
+ * 判断是否为运算符按键
+******/
+uchar is_operator_key(uchar key)
+{
+	return (key == '+') || (key == '-') || (key == 'x') || (key == '/') || (key == '=');
+}
+
+/******
  * 主函数
 ******/
 int main(void)
@@ -172,7 +192,6 @@ int main(void)
 	bit has_first_operand = 0;
 	float first_operand = 0;
 	float second_operand = 0;
-	uchar buffer_index = 0;
 
 	lcd_init();
 	delayms(10);
@@ -186,7 +205,7 @@ int main(void)
 		{
 			if(input_index == 0)            //输入第一个字符的时，需要把后面清空
 				lcd_write_command(LCD_CLEAR_COMMAND);
-			if(('+' == pressed_key) || (input_index == INPUT_BUFFER_SIZE) || ('-' == pressed_key) || ('x' == pressed_key) || ('/' == pressed_key) || ('=' == pressed_key))
+			if(is_operator_key(pressed_key) || (input_index == INPUT_BUFFER_SIZE))
 			{
 				input_index = 0;              //计算器复位
 				if(has_first_operand == 0)//flag等于0，则说明之前没书如果数字，现在输入一个被加数
@@ -196,10 +215,7 @@ int main(void)
 				}
 				else
 					sscanf(input_buffer, "%f", &second_operand);//如果flag等于1，则之前输入了一个被加或减、乘、除数
-				for(buffer_index = 0; buffer_index < INPUT_BUFFER_SIZE; buffer_index++) //缓冲区清理
-				{
-					input_buffer[buffer_index] = 0;
-				}
+				clear_input_buffer(input_buffer);
 				lcd_write_char(0, 1, pressed_key);  //符号在第二行
 				if(pressed_key != '=')
 					operator_key = pressed_key;       //如果输入的不是等号，记下标志位
@@ -218,8 +234,7 @@ int main(void)
 					lcd_write_string(1, 1, input_buffer);       //显示到液晶屏
 					operator_key = 0;    //之后数据清零
 					first_operand = second_operand = 0;   //之后数据清零            
-					for(buffer_index = 0; buffer_index < INPUT_BUFFER_SIZE; buffer_index++)
-					input_buffer[buffer_index] = 0;
+					clear_input_buffer(input_buffer);
 				}
 			}
 			else if(input_index < INPUT_BUFFER_SIZE)
