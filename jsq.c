@@ -7,7 +7,6 @@
 sbit RS = P2^4;
 sbit RW = P2^5;
 sbit E = P2^6;
-bit kp;
 
 /******
  * 延迟函数
@@ -100,16 +99,16 @@ void LCD_init()
 uchar key_scan()
 {
 	uchar scan1, scan2, temp;
-	static bit kp =0 ;
+	static bit is_key_latched = 0;
 	P3 = 0xf0;
 	scan1 = P3 & 0xf0;
 	if(scan1 != 0xf0)
 	{
 		delayms(10);
 		scan1 = P3 & 0xf0;
-		if((scan1 != 0xf0) && (kp == 0))
+		if((scan1 != 0xf0) && (is_key_latched == 0))
 		{
-			kp = 1;
+			is_key_latched = 1;
 			P3 = 0x0f;
 			scan2 = P3 & 0x0f;
 			temp = scan1 | scan2;
@@ -117,7 +116,7 @@ uchar key_scan()
 		}
 	}
 	else 
-		kp = 0;
+		is_key_latched = 0;
 	return 0xff;
 }
 
